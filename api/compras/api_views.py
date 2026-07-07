@@ -22,7 +22,7 @@ INVALID_MONGO_ERRORS = (InvalidId,) + MONGO_ERRORS
 
 from accounts.roles import get_role, is_manager
 from .mongo import compras_collection, produtos_collection
-from .views import MOCK_PRODUTOS, _listar_produtos, _normalizar_produto
+from .services import MOCK_PRODUTOS, listar_produtos, normalizar_produto
 
 
 def _body(request):
@@ -40,7 +40,7 @@ def _auth_required(request):
 
 
 def _serialize(produto):
-    produto = _normalizar_produto(produto)
+    produto = normalizar_produto(produto)
     return {
         "id": produto["id"],
         "nome": produto.get("nome", ""),
@@ -54,7 +54,7 @@ def _produto_por_id(produto_id):
     if produto_id.startswith("mock-"):
         try:
             index = int(produto_id.split("-", 1)[1]) - 1
-            return _normalizar_produto({"id": produto_id, **MOCK_PRODUTOS[index]})
+            return normalizar_produto({"id": produto_id, **MOCK_PRODUTOS[index]})
         except (IndexError, ValueError):
             return None
 
@@ -66,7 +66,7 @@ def _produto_por_id(produto_id):
     except INVALID_MONGO_ERRORS:
         return None
 
-    return _normalizar_produto(produto) if produto else None
+    return normalizar_produto(produto) if produto else None
 
 
 @csrf_exempt
@@ -79,7 +79,7 @@ def produtos(request):
 
     if request.method == "GET":
         termo = request.GET.get("q", "").strip()
-        produtos_lista, usando_mock = _listar_produtos(termo)
+        produtos_lista, usando_mock = listar_produtos(termo)
         return JsonResponse(
             {
                 "role": get_role(request.user),

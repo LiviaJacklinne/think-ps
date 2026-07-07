@@ -18,7 +18,7 @@ Instalando o Django
 pip install django
 ```
 
-### Executando
+### Executando a aplicação
 
 Para executar a Api rode:
 ```
@@ -27,4 +27,28 @@ python manage.py runserver 8000
 Para o Ui (frontend) rode:
 ```
 npm run dev
+```
+
+### Acessando o MongoDB dentro do Docker
+
+```bash
+
+# acessando o mongo via terminal
+docker compose exec mongo mongosh
+
+# seleiconando o banco de uso
+use think_ps
+
+show collections
+
+# exibir os dados dentro das collections
+db.produtos.find().pretty()
+db.compras.find().pretty()
+
+# fazendo um select pelo nome do produto
+db.produtos.find({ nome: "Pneu" }).pretty()
+
+# count 
+db.produtos.countDocuments()
+db.compras.countDocuments()
 ```
