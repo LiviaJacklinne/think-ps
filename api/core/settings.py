@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-%nvn6ytx_dr)-1(mm1-*_ip+crd5f0sho&l1lnovpky7xbp((t
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "web"]
 
 
 # Application definition
@@ -113,11 +113,8 @@ USE_I18N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/6.0/howto/static-files/
-
-STATIC_URL = 'static/'
-STATICFILES_DIRS = [BASE_DIR / "static"]
+# Static files
+STATIC_URL = "static/"
 
 LOGIN_URL = "/api/auth/login/"
 LOGIN_REDIRECT_URL = "/api/auth/menu/"

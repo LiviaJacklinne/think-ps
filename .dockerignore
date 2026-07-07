@@ -1,6 +1,7 @@
-venv
-__pycache__
-*.pyc
-.git
-.env
-db.sqlite3
+api/venv
+api/__pycache__
+api/**/*.pyc
+api/.env
+api/db.sqlite3
+ui/node_modules
+ui/.next

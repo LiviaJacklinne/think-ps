@@ -1,10 +1,11 @@
 services:
   web:
-    build: .
+    build:
+      context: ./api
     container_name: think_ps_web
     command: python manage.py runserver 0.0.0.0:8000
     volumes:
-      - .:/app
+      - ./api:/app
     ports:
       - "8000:8000"
     environment:
@@ -13,6 +14,22 @@ services:
       - MONGO_DB=think_ps
     depends_on:
       - mongo
+
+  ui:
+    build:
+      context: ./ui
+    container_name: think_ps_ui
+    command: npm run dev
+    volumes:
+      - ./ui:/app
+      - /app/node_modules
+      - /app/.next
+    ports:
+      - "3000:3000"
+    environment:
+      - DJANGO_API_URL=http://web:8000
+    depends_on:
+      - web
 
   mongo:
     image: mongo:7

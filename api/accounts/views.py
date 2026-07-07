@@ -31,7 +31,10 @@ def _json_body(request):
 
 
 def _wants_json(request):
-    return request.content_type == "application/json"
+    return (
+        request.content_type == "application/json"
+        or "application/json" in request.headers.get("Accept", "")
+    )
 
 
 @csrf_exempt
