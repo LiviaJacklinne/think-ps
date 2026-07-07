@@ -1,0 +1,26 @@
+services:
+  web:
+    build: .
+    container_name: think_ps_web
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - MONGO_HOST=mongo
+      - MONGO_PORT=27017
+      - MONGO_DB=think_ps
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo:7
+    container_name: think_ps_mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  mongo_data:
