@@ -45,14 +45,16 @@ export function AuthShell({ children }: { children: ReactNode }) {
   const value = useMemo(() => (user ? { user, setUser } : null), [user]);
 
   if (!user || !value) {
-    return <main className="main-loading" />;
+    return <main className="min-h-screen bg-slate-50" />;
   }
 
   return (
     <AuthContext.Provider value={value}>
-      <section className="dashboard">
+      <section className="grid min-h-screen grid-cols-[82px_1fr]">
         <Sidebar user={user} active={activeFromPath(pathname)} />
-        <main className="main page-transition" key={pathname}>{children}</main>
+        <main className="grid min-w-0 content-start gap-7 p-8 max-[860px]:p-6" key={pathname}>
+          {children}
+        </main>
       </section>
     </AuthContext.Provider>
   );

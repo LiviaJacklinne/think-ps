@@ -17,6 +17,9 @@ try:
 except ImportError:
     PyMongoError = Exception
 
+MONGO_ERRORS = (PyMongoError, RuntimeError)
+INVALID_MONGO_ERRORS = (InvalidId,) + MONGO_ERRORS
+
 from accounts.roles import get_role, is_manager
 from .mongo import compras_collection, produtos_collection
 from .views import MOCK_PRODUTOS, _listar_produtos, _normalizar_produto
@@ -60,7 +63,7 @@ def _produto_por_id(produto_id):
 
     try:
         produto = produtos_collection.find_one({"_id": ObjectId(produto_id)})
-    except (InvalidId, PyMongoError):
+    except INVALID_MONGO_ERRORS:
         return None
 
     return _normalizar_produto(produto) if produto else None
@@ -104,7 +107,7 @@ def produtos(request):
 
     try:
         result = produtos_collection.insert_one(produto)
-    except PyMongoError:
+    except MONGO_ERRORS:
         return JsonResponse({"erro": "Nao foi possivel salvar no MongoDB."}, status=503)
 
     produto["_id"] = result.inserted_id
@@ -147,7 +150,7 @@ def produto_detalhe(request, produto_id):
     try:
         produtos_collection.update_one({"_id": object_id}, {"$set": dados})
         produto = produtos_collection.find_one({"_id": object_id})
-    except PyMongoError:
+    except MONGO_ERRORS:
         return JsonResponse({"erro": "Nao foi possivel atualizar o MongoDB."}, status=503)
 
     if not produto:
@@ -212,7 +215,7 @@ def comprar_produto(request, produto_id):
             },
             upsert=True,
         )
-    except (InvalidId, PyMongoError):
+    except INVALID_MONGO_ERRORS:
         return JsonResponse({"erro": "Nao foi possivel registrar a compra."}, status=503)
 
     return JsonResponse({"mensagem": "Produto adicionado ao carrinho."})
@@ -231,7 +234,7 @@ def carrinho(request):
 
     try:
         compras = list(compras_collection.find({"usuario_id": request.user.id}).sort("comprado_em", -1))
-    except PyMongoError:
+    except MONGO_ERRORS:
         return JsonResponse({"erro": "Nao foi possivel consultar o carrinho."}, status=503)
 
     itens = [_serialize(compra) for compra in compras]
@@ -256,7 +259,7 @@ def item_carrinho(request, compra_id):
     try:
         object_id = ObjectId(compra_id)
         compra = compras_collection.find_one({"_id": object_id, "usuario_id": request.user.id})
-    except (InvalidId, PyMongoError):
+    except INVALID_MONGO_ERRORS:
         return JsonResponse({"erro": "Item invalido."}, status=400)
 
     if not compra:
@@ -271,7 +274,7 @@ def item_carrinho(request, compra_id):
         try:
             produtos_collection.update_one({"_id": produto_id}, {"$inc": {"quantidade": int(compra["quantidade"])}})
             compras_collection.delete_one({"_id": object_id})
-        except PyMongoError:
+        except MONGO_ERRORS:
             return JsonResponse({"erro": "Nao foi possivel excluir o item."}, status=503)
 
         return JsonResponse({"mensagem": "Item removido."})
@@ -308,7 +311,7 @@ def item_carrinho(request, compra_id):
             {"_id": object_id},
             {"$set": {"quantidade": nova_quantidade, "atualizado_em": timezone.now()}},
         )
-    except PyMongoError:
+    except MONGO_ERRORS:
         return JsonResponse({"erro": "Nao foi possivel atualizar o item."}, status=503)
 
     return JsonResponse({"mensagem": "Quantidade atualizada."})

@@ -17,3 +17,14 @@ Instalando o Django
 ```bash
 pip install django
 ```
+
+### Executando
+
+Para executar a Api rode:
+```
+python manage.py runserver 8000
+```
+Para o Ui (frontend) rode:
+```
+npm run dev
+```

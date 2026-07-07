@@ -23,6 +23,15 @@ from .roles import (
 User = get_user_model()
 
 
+def _user_payload(user):
+    return {
+        "id": user.id,
+        "username": user.username,
+        "email": user.email,
+        "role": get_role(user),
+    }
+
+
 def _json_body(request):
     try:
         return json.loads(request.body or "{}")
@@ -35,6 +44,18 @@ def _wants_json(request):
         request.content_type == "application/json"
         or "application/json" in request.headers.get("Accept", "")
     )
+
+
+def _manager_required(request):
+    bootstrap_roles(User)
+
+    if not request.user.is_authenticated:
+        return JsonResponse({"erro": "Login obrigatorio."}, status=401)
+
+    if not is_manager(request.user):
+        return JsonResponse({"erro": "Apenas managers podem acessar este recurso."}, status=403)
+
+    return None
 
 
 @csrf_exempt
@@ -120,15 +141,63 @@ def cadastro(request):
 
         return redirect("menu")
 
-    return JsonResponse(
-        {
-            "id": user.id,
-            "username": user.username,
-            "email": user.email,
-            "role": get_role(user),
-        },
-        status=201,
-    )
+    return JsonResponse(_user_payload(user), status=201)
+
+
+@csrf_exempt
+@require_http_methods(["GET"])
+def usuarios(request):
+    blocked = _manager_required(request)
+    if blocked:
+        return blocked
+
+    users = User.objects.all().order_by("username")
+    return JsonResponse({"usuarios": [_user_payload(user) for user in users]})
+
+
+@csrf_exempt
+@require_http_methods(["PATCH"])
+def usuario_detalhe(request, user_id):
+    blocked = _manager_required(request)
+    if blocked:
+        return blocked
+
+    data = _json_body(request)
+    if data is None:
+        return JsonResponse({"erro": "JSON invalido."}, status=400)
+
+    try:
+        user = User.objects.get(id=user_id)
+    except User.DoesNotExist:
+        return JsonResponse({"erro": "Usuario nao encontrado."}, status=404)
+
+    username = data.get("username", user.username).strip()
+    email = data.get("email", user.email).strip()
+    password = data.get("password", "")
+    role = data.get("role", get_role(user))
+
+    if not username:
+        return JsonResponse({"erro": "Informe o nome de usuario."}, status=400)
+
+    if User.objects.filter(username=username).exclude(id=user.id).exists():
+        return JsonResponse({"erro": "Usuario ja cadastrado."}, status=400)
+
+    if email and User.objects.filter(email=email).exclude(id=user.id).exists():
+        return JsonResponse({"erro": "E-mail ja cadastrado."}, status=400)
+
+    if role not in ROLE_CHOICES:
+        return JsonResponse({"erro": "Role invalida."}, status=400)
+
+    user.username = username
+    user.email = email
+
+    if password:
+        user.set_password(password)
+
+    user.save()
+    assign_role(user, role)
+
+    return JsonResponse(_user_payload(user))
 
 
 @csrf_exempt
@@ -173,12 +242,7 @@ def login_usuario(request):
         return redirect("menu")
 
     return JsonResponse(
-        {
-            "id": user.id,
-            "username": user.username,
-            "email": user.email,
-            "role": get_role(user),
-        }
+        _user_payload(user)
     )
 
 
@@ -199,6 +263,7 @@ def menu(request):
     return render(request, "accounts/menu.html", {"role": get_role(request.user)})
 
 
+@csrf_exempt
 @require_http_methods(["GET", "POST"])
 def usuario_atual(request):
     bootstrap_roles(User)
@@ -256,14 +321,7 @@ def usuario_atual(request):
             messages.success(request, "Perfil atualizado com sucesso.")
             return redirect("usuario_atual")
 
-        return JsonResponse(
-            {
-                "id": user.id,
-                "username": user.username,
-                "email": user.email,
-                "role": get_role(user),
-            }
-        )
+        return JsonResponse(_user_payload(user))
 
     if not _wants_json(request):
         return render(request, "accounts/me.html", {"role": get_role(request.user)})

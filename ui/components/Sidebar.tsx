@@ -12,6 +12,13 @@ type SidebarProps = {
   active: SidebarItem;
 };
 
+const iconLinkClasses =
+  "flex min-h-12 w-full items-center justify-center rounded-lg text-slate-300 transition-colors hover:bg-slate-800 hover:text-white";
+
+function linkClasses(isActive: boolean) {
+  return `${iconLinkClasses} ${isActive ? "bg-slate-800 text-white" : ""}`;
+}
+
 export function Sidebar({ user, active }: SidebarProps) {
   const router = useRouter();
   const isManager = user.role === "manager";
@@ -25,41 +32,38 @@ export function Sidebar({ user, active }: SidebarProps) {
   }
 
   return (
-    <aside className="sidebar">
-      <nav className="sidebar-main" aria-label="Navegacao principal">
-        <Link className={active === "home" ? "active" : ""} href="/home" title="Home">
-          <Home />
-          <span>Home</span>
+    <aside className="grid min-h-screen grid-rows-[1fr_auto] gap-7 bg-slate-900 px-5 py-7 text-slate-50">
+      <nav className="grid content-start gap-2" aria-label="Navegação principal">
+        <Link className={linkClasses(active === "home")} href="/home" title="Home">
+          <Home className="h-6 w-6" />
+          <span className="sr-only">Home</span>
         </Link>
-        <Link className={active === "produtos" ? "active" : ""} href="/products" title="Produtos">
-          <Package />
-          <span>Produtos</span>
+        <Link className={linkClasses(active === "produtos")} href="/products" title="Produtos">
+          <Package className="h-6 w-6" />
+          <span className="sr-only">Produtos</span>
         </Link>
         {!isManager && (
-          <Link className={active === "carrinho" ? "active" : ""} href="/cart" title="Carrinho">
-            <ShoppingCart />
-            <span>Carrinho</span>
+          <Link className={linkClasses(active === "carrinho")} href="/cart" title="Carrinho">
+            <ShoppingCart className="h-6 w-6" />
+            <span className="sr-only">Carrinho</span>
           </Link>
         )}
-        <Link className={active === "usuario" ? "active" : ""} href="/profile" title="Usuario">
-          <UserRound />
-          <span>Usuario</span>
+        <Link className={linkClasses(active === "usuario")} href="/profile" title="Perfil">
+          <UserRound className="h-6 w-6" />
+          <span className="sr-only">Perfil</span>
         </Link>
         {isManager && (
-          <Link className={active === "novo-usuario" ? "active" : ""} href="/register" title="Novo usuario">
-            <UserRoundPlus />
-            <span>Novo usuario</span>
+          <Link className={linkClasses(active === "novo-usuario")} href="/register" title="Usuários">
+            <UserRoundPlus className="h-6 w-6" />
+            <span className="sr-only">Usuários</span>
           </Link>
         )}
       </nav>
 
-      <div className="sidebar-bottom">
-        <span className="brand-mark" title={`${user.username} (${user.role})`}>
-          {user.username[0]?.toUpperCase()}
-        </span>
-        <button className="logout-button" type="button" onClick={logout} title="Sair">
-          <LogOut />
-          <span>Sair</span>
+      <div>
+        <button className={iconLinkClasses} type="button" onClick={logout} title="Sair">
+          <LogOut className="h-6 w-6" />
+          <span className="sr-only">Sair</span>
         </button>
       </div>
     </aside>
