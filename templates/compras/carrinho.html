@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}Carrinho{% endblock %}
+
+{% block content %}
+  <section class="dashboard-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <span class="brand-mark">{{ request.user.username|first|upper }}</span>
+        <div class="brand-copy">
+          <strong>{{ request.user.username }}</strong>
+          <small>{{ role|default:"Compras" }}</small>
+        </div>
+        <button class="menu-toggle" type="button" aria-label="Abrir ou fechar menu" aria-expanded="true" data-sidebar-toggle>
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <path d="M4 6h16"></path>
+            <path d="M4 12h16"></path>
+            <path d="M4 18h16"></path>
+          </svg>
+        </button>
+      </div>
+
+      <nav class="sidebar-nav" aria-label="Navegacao principal">
+        <a href="{% url 'menu' %}">
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <path d="M3 11l9-8 9 8"></path>
+            <path d="M5 10v10h14V10"></path>
+            <path d="M10 20v-6h4v6"></path>
+          </svg>
+          <span>Home</span>
+        </a>
+        <a href="{% url 'lista_produtos' %}">
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <path d="M6 7h12l-1 13H7L6 7Z"></path>
+            <path d="M9 7a3 3 0 0 1 6 0"></path>
+          </svg>
+          <span>Produtos</span>
+        </a>
+        <a href="{% url 'carrinho' %}" class="active">
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <circle cx="9" cy="20" r="1.5"></circle>
+            <circle cx="18" cy="20" r="1.5"></circle>
+            <path d="M3 4h2l2.4 11.2a2 2 0 0 0 2 1.6h7.9a2 2 0 0 0 2-1.6L21 8H7"></path>
+          </svg>
+          <span>Carrinho</span>
+        </a>
+        <a href="{% url 'usuario_atual' %}">
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <circle cx="12" cy="8" r="4"></circle>
+            <path d="M4 21a8 8 0 0 1 16 0"></path>
+          </svg>
+          <span>Perfil</span>
+        </a>
+      </nav>
+
+      <form method="post" action="{% url 'logout_usuario' %}" class="sidebar-logout">
+        {% csrf_token %}
+        <button type="submit" aria-label="Sair" title="Sair">
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <path d="M10 17l5-5-5-5"></path>
+            <path d="M15 12H3"></path>
+            <path d="M21 3v18h-7"></path>
+          </svg>
+          <span>Sair</span>
+        </button>
+      </form>
+    </aside>
+
+    <div class="dashboard-main">
+      <header class="dashboard-header">
+        <div>
+          <p>Carrinho</p>
+          <h1>Minhas compras</h1>
+        </div>
+        <a href="{% url 'lista_produtos' %}" class="action-button">Comprar mais</a>
+      </header>
+
+      {% if messages %}
+        <div class="messages">
+          {% for message in messages %}
+            <p>{{ message }}</p>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      {% if usando_mock %}
+        <p class="info-banner">Nao foi possivel consultar o MongoDB agora.</p>
+      {% endif %}
+
+      <section class="products-panel">
+        <div class="cart-summary">
+          <span>Total</span>
+          <strong>R$ {{ total|floatformat:2 }}</strong>
+        </div>
+
+        <div class="products-table">
+          <div class="products-row cart-row products-head">
+            <span>Produto</span>
+            <span>Quantidade</span>
+            <span>Valor</span>
+            <span>Subtotal</span>
+            <span>Acao</span>
+          </div>
+
+          {% for compra in compras %}
+            <div class="products-row cart-row">
+              <span><strong>{{ compra.nome }}</strong></span>
+              <span>
+                <form method="post" action="{% url 'atualizar_item_carrinho' compra.id %}" class="inline-form">
+                  {% csrf_token %}
+                  <input
+                    class="quantity-input"
+                    name="quantidade"
+                    type="number"
+                    min="1"
+                    value="{{ compra.quantidade }}"
+                    aria-label="Quantidade de {{ compra.nome }}"
+                  >
+                  <button class="table-button" type="submit">Salvar</button>
+                </form>
+              </span>
+              <span>R$ {{ compra.valor|floatformat:2 }}</span>
+              <span>R$ {{ compra.subtotal|floatformat:2 }}</span>
+              <span>
+                <form method="post" action="{% url 'excluir_item_carrinho' compra.id %}" class="inline-form">
+                  {% csrf_token %}
+                  <button class="danger-button" type="submit">Excluir</button>
+                </form>
+              </span>
+            </div>
+          {% empty %}
+            <div class="empty-state">Nenhuma compra registrada ainda.</div>
+          {% endfor %}
+        </div>
+      </section>
+    </div>
+  </section>
+{% endblock %}

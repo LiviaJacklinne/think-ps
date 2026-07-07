@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Cadastro{% endblock %}
+
+{% block content %}
+  <section class="auth-panel">
+    <div>
+      <p class="eyebrow">Think PS</p>
+      <h1>Criar conta</h1>
+    </div>
+
+    {% if messages %}
+      <div class="messages">
+        {% for message in messages %}
+          <p>{{ message }}</p>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <form method="post" class="form">
+      {% csrf_token %}
+
+      <label for="username">Usuario</label>
+      <input id="username" name="username" type="text" autocomplete="username" required>
+
+      <label for="email">E-mail</label>
+      <input id="email" name="email" type="email" autocomplete="email">
+
+      <label for="password">Senha</label>
+      <input id="password" name="password" type="password" autocomplete="new-password" required>
+
+      {% if can_choose_role %}
+        <label for="role">Role</label>
+        <select id="role" name="role" required>
+          <option value="user">user</option>
+          <option value="manager">manager</option>
+        </select>
+      {% endif %}
+
+      <button type="submit">Cadastrar</button>
+    </form>
+
+    {% if is_first_user %}
+      <p class="muted">O primeiro usuario sera criado como manager.</p>
+    {% else %}
+      <p class="muted">
+        Ja tem conta?
+        <a href="{% url 'login_usuario' %}">Entrar</a>
+      </p>
+    {% endif %}
+  </section>
+{% endblock %}
